@@ -1,0 +1,9 @@
+{
+  "name": "jacerider/mail_theme",
+  "description": "Provides email wrapping HTML and styling.",
+  "type": "drupal-module",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "drupal/core": "^9.3 || ^10"
+  }
+}

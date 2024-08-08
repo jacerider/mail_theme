@@ -1,0 +1,4 @@
+name: 'Mail Theme'
+type: module
+description: 'Provides email wrapping HTML and styling.'
+core_version_requirement: ^10

@@ -1,0 +1,137 @@
+{#
+/**
+ * @file
+ * Default template to format a HTML email using the Mime Mail module.
+ *
+ * Copy this file in your default theme folder to create a custom themed email.
+ * If you modify this template you MUST be sure to keep the html, body, and
+ * header tags. This template should produce a fully-formed HTML document.
+ * Failure to include these will result in a malformed email and possibly
+ * errors shown to the user when sending email.
+ *
+ * To override this template for all emails sent by a given module,
+ * rename this template to postmark-messages--[module].html.twig.
+ *
+ * To override this template for a specific email sent by a given module,
+ * rename this template to postmark-messages--[module]--[key].html.twig.
+ *
+ * Available variables:
+ * - attributes: HTML attributes for the body element of the message.
+ * - key: The message identifier.
+ * - module: The machine name of the sending module.
+ * - css: Internal style sheets.
+ * - recipient: The recipient of the message.
+ * - subject: The message subject.
+ * - body: The message body.
+ *
+ * @see template_preprocess_postmark_message()
+ *
+ * @ingroup themeable
+ */
+#}
+{% set classes = module ? (key ? module ~ '-' ~ key) %}
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>{{ site_name }}</title>
+  <style>
+    a,
+    a:hover {color: {{ primary_color }};}
+    p {margin: 0px 0px 15px;}
+    {{ css }}
+    @media print {
+      .no-print { display: none !important;}
+    }
+  </style>
+  <style media="only print">
+    .no-print { display: none !important;}
+  </style>
+</head>
+<body id="mail-body"{{ attributes.addClass(classes) }} style="background-color: #f6f6f6; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+<table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background-color: #f6f6f6;">
+  <tr>
+    <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;">&nbsp;</td>
+    <td class="container" style="font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; margin: 0 auto; max-width: {{ width }}; padding: 10px; width: {{ width }};">
+      <div class="content" style="box-sizing: border-box; display: block; margin: 0 auto; max-width: {{ width }}; padding: 10px; color: {{ text_color }};">
+
+        <!-- START HEADER CONTENT AREA -->
+        {% if show_header %}
+        <div class="no-print" style="max-width: {{ width }}; margin:0 auto; background: #ffffff; border-radius: 5px; mso-padding-alt:0; text-align:center;" class="header-wrapper">
+          <div class="header">
+            {% if logo_url %}
+              <div class="email-logo" style="padding: 24px;">
+                <a href="{{ site_url }}"><img src="{{ logo_url }}" alt="{{ site_name }}" class="email-logo" width="{{ logo_width }}" height="{{ logo_height }}" style="max-width: 100%" /></a>
+              </div>
+            {% else %}
+              <div class="masthead" style="padding: 10px;">
+                <h3><a href="{{ site_url }}">{{ site_name }}</a></h3>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+        <!-- END HEADER CONTENT AREA -->
+
+        <!-- START CENTERED WHITE CONTAINER -->
+        <table class="main" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #ffffff; border-radius: 3px;">
+
+          <!-- START MAIN CONTENT AREA -->
+          <tr>
+            <td class="wrapper" style="font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;{% if show_header %} padding-top: 0;{% endif %}">
+              <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+                <tr>
+                  <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
+                    <div style="font-family: sans-serif; font-size: 15px; font-weight: normal; margin: 0;">{{ body }}</div>
+
+                    {% if cta_url and cta_text %}
+                      <table class="call-to-action no-print" border="0" cellpadding="0" cellspacing="0" class="cta" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
+                        <tbody>
+                        <tr>
+                          <td align="center" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-top: 15px;">
+                            <a href="{{ cta_url }}" target="_blank" style="display: inline-block; color: #ffffff; background-color: {{ primary_color }}; border: solid 1px {{ primary_color }}; border-radius: 5px; box-sizing: border-box; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-transform: capitalize; border-color: {{ primary_color }};">{{ cta_text }}</a>
+                          </td>
+                        </tr>
+                        </tbody>
+                      </table>
+                    {% elseif cta_text %}
+                      <table class="call-to-action no-print" border="0" cellpadding="0" cellspacing="0" class="cta" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
+                        <tbody>
+                        <tr>
+                          <td align="center" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-top: 15px;">
+                            <span target="_blank" style="display: inline-block; color: #ffffff; background-color: {{ secondary_color }}; border: solid 1px {{ secondary_color }}; border-radius: 5px; box-sizing: border-box; text-decoration: none; font-size: 30px; font-weight: bold; margin: 0; padding: 12px 25px; text-transform: capitalize; border-color: {{ secondary_color }};">{{ cta_text }}</span>
+                          </td>
+                        </tr>
+                        </tbody>
+                      </table>
+                    {% endif %}
+
+                    {% if footer %}
+                      <div style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 15px 0 0; border-top: 1px solid #f6f6f6; padding-top: 15px;">{{ footer }}</div>
+                    {% endif %}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- END MAIN CONTENT AREA -->
+        </table>
+        {% if bottom %}
+          <div class="no-print" style="font-family: sans-serif; font-size: 11px; font-weight: normal; padding-top: 5px; text-align: center;">{{ bottom }}</div>
+        {% endif %}
+        <!-- END CENTERED WHITE CONTAINER -->
+      </div>
+    </td>
+    <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;">&nbsp;</td>
+  </tr>
+</table>
+</body>
+</html>

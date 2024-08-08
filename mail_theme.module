@@ -1,0 +1,69 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for Mail Theme module.
+ */
+
+use Drupal\Component\Render\MarkupInterface;
+
+/**
+ * Implements hook_theme().
+ */
+function mail_theme_theme() {
+  $theme['mail_theme_wrapper'] = [
+    'variables' => [
+      'body' => NULL,
+      'cta_text' => NULL,
+      'cta_url' => NULL,
+      'site_name' => NULL,
+      'show_header' => TRUE,
+      'show_logo' => TRUE,
+      'width' => '580px',
+      'logo_width' => '100%',
+      'logo_height' => 'auto',
+      'primary_color' => NULL,
+      'secondary_color' => NULL,
+    ],
+    'file' => 'mail_theme.page.inc',
+  ];
+  return $theme;
+}
+
+function mail_theme_mail_alter(&$message) {
+  if (!empty($message['body'])) {
+    /** @var \Drupal\Core\Render\RendererInterface $renderer */
+    $renderer = \Drupal::service('renderer');
+    if (is_array($message['body'])) {
+      foreach ($message['body'] as &$value) {
+        if ($value instanceof MarkupInterface) {
+          $value = ['#markup' => $value];
+        }
+      }
+    }
+
+    // Account for various senders.
+    $content = '';
+    if (isset($message['body'][0]) && is_string($message['body'][0])) {
+      $content = html_entity_decode($message['body'][0]);
+    } else if (isset($message['body'][0])) {
+      $content = $message['body'][0];
+    } else {
+      $content = $message['body'];
+    }
+
+    $body = [
+      '#theme' => 'mail_theme_wrapper',
+      '#body' => $content,
+      '#show_header' => $message['params']['show_header'] ?? TRUE,
+      '#show_logo' => $message['params']['show_logo'] ?? TRUE,
+      '#width' => $message['params']['width'] ?? '580px',
+      '#cta' => $message['cta'] ?? NULL,
+      '#cta_text' => $message['params']['cta_text'] ?? NULL,
+      '#cta_url' => $message['params']['cta_url'] ?? NULL,
+    ];
+    $message['body'] = [
+      $renderer->renderPlain($body),
+    ];
+  }
+}
