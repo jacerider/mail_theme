@@ -46,12 +46,11 @@ function template_preprocess_mail_theme_wrapper(array &$variables) {
     $variables['css'] = file_get_contents($css_path);
   }
 
-  $variables['text_color'] = '#3d3d3d';
   $variables['primary_color'] = '#226127';
   $variables['secondary_color'] = '#56bceb';
   if (function_exists('exo_theme_colors')) {
     $colors = exo_theme_colors();
-    $variables['text_color'] = $colors['base']['hex'] ?? $variables['text_color'];
+    $variables['content_color'] = $colors['base']['hex'] ?? $variables['text_color'];
     $variables['primary_color'] = $colors['primary']['hex'] ?? $variables['primary_color'];
     $variables['secondary_color'] = $colors['secondary']['hex'] ?? $variables['secondary_color'];
   }

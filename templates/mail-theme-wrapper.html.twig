@@ -55,23 +55,23 @@
     .no-print { display: none !important;}
   </style>
 </head>
-<body id="mail-body"{{ attributes.addClass(classes) }} style="background-color: #f6f6f6; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+<body id="mail-body"{{ attributes.addClass(classes) }} style="background-color: {{ body_bg }}; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
 <table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background-color: #f6f6f6;">
   <tr>
     <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;">&nbsp;</td>
     <td class="container" style="font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; margin: 0 auto; max-width: {{ width }}; padding: 10px; width: {{ width }};">
-      <div class="content" style="box-sizing: border-box; display: block; margin: 0 auto; max-width: {{ width }}; padding: 10px; color: {{ text_color }};">
+      <div class="content" style="box-sizing: border-box; display: block; margin: 0 auto; max-width: {{ width }}; padding: 10px; color: {{ content_color }};">
 
         <!-- START HEADER CONTENT AREA -->
         {% if show_header %}
-        <div class="no-print" style="max-width: {{ width }}; margin:0 auto; background: #ffffff; border-radius: 5px; mso-padding-alt:0; text-align:center;" class="header-wrapper">
+        <div class="no-print" style="max-width: {{ width }}; width: {{ header_width }}; margin:0 auto; background: {{ header_bg }}; color: {{ header_color }}; border-radius: 5px; mso-padding-alt:0; text-align:center;" class="header-wrapper">
           <div class="header">
             {% if logo_url %}
-              <div class="email-logo" style="padding: 24px;">
+              <div class="email-logo" style="padding: {{ header_logo_padding }};">
                 <a href="{{ site_url }}"><img src="{{ logo_url }}" alt="{{ site_name }}" class="email-logo" width="{{ logo_width }}" height="{{ logo_height }}" style="max-width: 100%" /></a>
               </div>
             {% else %}
-              <div class="masthead" style="padding: 10px;">
+              <div class="masthead" style="padding: {{ header_text_padding }};">
                 <h3><a href="{{ site_url }}">{{ site_name }}</a></h3>
               </div>
             {% endif %}
@@ -81,11 +81,11 @@
         <!-- END HEADER CONTENT AREA -->
 
         <!-- START CENTERED WHITE CONTAINER -->
-        <table class="main" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #ffffff; border-radius: 3px;">
+        <table class="main" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: {{ content_bg }}; border-radius: 3px;">
 
           <!-- START MAIN CONTENT AREA -->
           <tr>
-            <td class="wrapper" style="font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;{% if show_header %} padding-top: 0;{% endif %}">
+            <td class="wrapper" style="font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;{% if show_header and content_bg == header_bg %} padding-top: 0;{% endif %}">
               <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
                 <tr>
                   <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;">

@@ -6,6 +6,7 @@
  */
 
 use Drupal\Component\Render\MarkupInterface;
+use Drupal\Component\Utility\DeprecationHelper;
 
 /**
  * Implements hook_theme().
@@ -22,6 +23,14 @@ function mail_theme_theme() {
       'width' => '580px',
       'logo_width' => '100%',
       'logo_height' => 'auto',
+      'body_bg' => '#f6f6f6',
+      'content_bg' => '#ffffff',
+      'content_color' => '#3d3d3d',
+      'header_bg' => '#ffffff',
+      'header_color' => '#000000',
+      'header_logo_padding' => '24px',
+      'header_text_padding' => '10px',
+      'header_width' => 'auto',
       'primary_color' => NULL,
       'secondary_color' => NULL,
     ],
@@ -31,6 +40,7 @@ function mail_theme_theme() {
 }
 
 function mail_theme_mail_alter(&$message) {
+  $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed; delsp=yes';
   if (!empty($message['body'])) {
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
     $renderer = \Drupal::service('renderer');
@@ -62,8 +72,11 @@ function mail_theme_mail_alter(&$message) {
       '#cta_text' => $message['params']['cta_text'] ?? NULL,
       '#cta_url' => $message['params']['cta_url'] ?? NULL,
     ];
-    $message['body'] = [
-      $renderer->renderPlain($body),
-    ];
+    $message['body'] = [DeprecationHelper::backwardsCompatibleCall(
+      currentVersion: \Drupal::VERSION,
+      deprecatedVersion: '10.3',
+      currentCallable: fn() => $renderer->renderInIsolation($body),
+      deprecatedCallable: fn() => $renderer->renderPlain($body),
+    )];
   }
 }
