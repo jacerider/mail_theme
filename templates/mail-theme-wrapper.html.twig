@@ -44,7 +44,7 @@
   <title>{{ site_name }}</title>
   <style>
     a,
-    a:hover {color: {{ primary_color }};}
+    a:hover {color: {{ primary_bg }};}
     p {margin: 0px 0px 15px;}
     {{ css }}
     @media print {
@@ -96,7 +96,7 @@
                         <tbody>
                         <tr>
                           <td align="center" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-top: 15px;">
-                            <a href="{{ cta_url }}" target="_blank" style="display: inline-block; color: #ffffff; background-color: {{ primary_color }}; border: solid 1px {{ primary_color }}; border-radius: 5px; box-sizing: border-box; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-transform: capitalize; border-color: {{ primary_color }};">{{ cta_text }}</a>
+                            <a href="{{ cta_url }}" target="_blank" style="display: inline-block; color: {{ primary_color }}; background-color: {{ primary_bg }}; border: solid 1px {{ primary_bg }}; border-radius: 5px; box-sizing: border-box; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-transform: capitalize; border-color: {{ primary_color }};">{{ cta_text }}</a>
                           </td>
                         </tr>
                         </tbody>
@@ -106,7 +106,7 @@
                         <tbody>
                         <tr>
                           <td align="center" style="font-family: sans-serif; font-size: 14px; vertical-align: top; padding-top: 15px;">
-                            <span target="_blank" style="display: inline-block; color: #ffffff; background-color: {{ secondary_color }}; border: solid 1px {{ secondary_color }}; border-radius: 5px; box-sizing: border-box; text-decoration: none; font-size: 30px; font-weight: bold; margin: 0; padding: 12px 25px; text-transform: capitalize; border-color: {{ secondary_color }};">{{ cta_text }}</span>
+                            <span target="_blank" style="display: inline-block; color: {{ secondary_color }}; background-color: {{ secondary_bg }}; border: solid 1px {{ secondary_bg }}; border-radius: 5px; box-sizing: border-box; text-decoration: none; font-size: 30px; font-weight: bold; margin: 0; padding: 12px 25px; text-transform: capitalize; border-color: {{ secondary_color }};">{{ cta_text }}</span>
                           </td>
                         </tr>
                         </tbody>

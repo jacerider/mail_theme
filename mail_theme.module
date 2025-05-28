@@ -7,6 +7,7 @@
 
 use Drupal\Component\Render\MarkupInterface;
 use Drupal\Component\Utility\DeprecationHelper;
+use Drupal\Core\Render\Markup;
 
 /**
  * Implements hook_theme().
@@ -31,8 +32,10 @@ function mail_theme_theme() {
       'header_logo_padding' => '24px',
       'header_text_padding' => '10px',
       'header_width' => 'auto',
-      'primary_color' => NULL,
-      'secondary_color' => NULL,
+      'primary_color' => '#ffffff',
+      'primary_bg' => '#226127',
+      'secondary_color' => '#ffffff',
+      'secondary_bg' => '#56bceb',
     ],
     'file' => 'mail_theme.page.inc',
   ];
@@ -60,6 +63,9 @@ function mail_theme_mail_alter(&$message) {
       $content = $message['body'][0];
     } else {
       $content = $message['body'];
+    }
+    if (is_string($content)) {
+      $content = Markup::create($content);
     }
 
     $body = [
