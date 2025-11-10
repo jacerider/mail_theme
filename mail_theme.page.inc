@@ -29,10 +29,11 @@ function template_preprocess_mail_theme_wrapper(array &$variables) {
     // If we are using .png, change to .svg.
     $logo = str_replace('.png', '-email.png', theme_get_setting('logo.url', $config->get('default')));
     $logo = str_replace('.svg', '-email.png', $logo);
-    if (file_exists(ltrim($logo, '/'))) {
+    $logo_path = ltrim($logo, '/');
+    if (file_exists($logo_path)) {
       $url = Url::fromUserInput($logo);
+      [$width, $height] = getimagesize($logo_path);
       $variables['logo_url'] = $url->setAbsolute()->toString();
-      [$width, $height] = getimagesize($url->toString());
       $variables['logo_width'] = $width;
       $variables['logo_height'] = $height;
     }
