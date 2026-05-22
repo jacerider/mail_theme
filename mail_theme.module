@@ -42,47 +42,108 @@ function mail_theme_theme() {
   return $theme;
 }
 
-function mail_theme_mail_alter(&$message) {
-  $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed; delsp=yes';
-  if (!empty($message['body'])) {
-    /** @var \Drupal\Core\Render\RendererInterface $renderer */
-    $renderer = \Drupal::service('renderer');
-    if (is_array($message['body'])) {
-      foreach ($message['body'] as &$value) {
-        if ($value instanceof MarkupInterface) {
-          $value = ['#markup' => $value];
-        }
+/**
+ * Implements hook_mail_alter().
+ *
+ * Wraps every outgoing message in the Mail Theme HTML template. For a setup
+ * that does not depend on the configured formatter leaving the HTML intact,
+ * configure the "Mail Theme (HTML formatter)" plugin as the formatter in the
+ * Mail System (mailsystem) settings.
+ *
+ * @see \Drupal\mail_theme\Plugin\Mail\MailThemeFormatter
+ */
+function mail_theme_mail_alter(array &$message) {
+  _mail_theme_wrap_message($message);
+}
+
+/**
+ * Wraps a message body in the Mail Theme HTML template.
+ *
+ * Safe to call more than once: the body is wrapped a single time only, so
+ * hook_mail_alter() and the "mail_theme" formatter plugin can share this logic
+ * without double-wrapping the message.
+ *
+ * @param array $message
+ *   A message array, as described in hook_mail_alter().
+ */
+function _mail_theme_wrap_message(array &$message) {
+  // Nothing to wrap, or the body has already been wrapped.
+  if (empty($message['body']) || !empty($message['mail_theme_processed'])) {
+    return;
+  }
+  $message['mail_theme_processed'] = TRUE;
+  $message['headers']['Content-Type'] = 'text/html; charset=UTF-8';
+
+  /** @var \Drupal\Core\Render\RendererInterface $renderer */
+  $renderer = \Drupal::service('renderer');
+  if (is_array($message['body'])) {
+    foreach ($message['body'] as &$value) {
+      if ($value instanceof MarkupInterface) {
+        $value = ['#markup' => $value];
       }
     }
-
-    // Account for various senders.
-    $content = '';
-    if (isset($message['body'][0]) && is_string($message['body'][0])) {
-      $content = html_entity_decode($message['body'][0]);
-    } else if (isset($message['body'][0])) {
-      $content = $message['body'][0];
-    } else {
-      $content = $message['body'];
-    }
-    if (is_string($content)) {
-      $content = Markup::create($content);
-    }
-
-    $body = [
-      '#theme' => 'mail_theme_wrapper',
-      '#body' => $content,
-      '#show_header' => $message['params']['show_header'] ?? TRUE,
-      '#show_logo' => $message['params']['show_logo'] ?? TRUE,
-      '#width' => $message['params']['width'] ?? '580px',
-      '#cta' => $message['cta'] ?? NULL,
-      '#cta_text' => $message['params']['cta_text'] ?? NULL,
-      '#cta_url' => $message['params']['cta_url'] ?? NULL,
-    ];
-    $message['body'] = [DeprecationHelper::backwardsCompatibleCall(
-      currentVersion: \Drupal::VERSION,
-      deprecatedVersion: '10.3',
-      currentCallable: fn() => $renderer->renderInIsolation($body),
-      deprecatedCallable: fn() => $renderer->renderPlain($body),
-    )];
+    unset($value);
   }
+
+  // Account for various senders.
+  if (isset($message['body'][0]) && is_string($message['body'][0])) {
+    $content = html_entity_decode($message['body'][0]);
+  }
+  elseif (isset($message['body'][0])) {
+    $content = $message['body'][0];
+  }
+  else {
+    $content = $message['body'];
+  }
+  if (is_string($content)) {
+    $content = Markup::create(_mail_theme_text_to_html($content));
+  }
+
+  $body = [
+    '#theme' => 'mail_theme_wrapper',
+    '#body' => $content,
+    '#show_header' => $message['params']['show_header'] ?? TRUE,
+    '#show_logo' => $message['params']['show_logo'] ?? TRUE,
+    '#width' => $message['params']['width'] ?? '580px',
+    '#cta' => $message['cta'] ?? NULL,
+    '#cta_text' => $message['params']['cta_text'] ?? NULL,
+    '#cta_url' => $message['params']['cta_url'] ?? NULL,
+  ];
+  $message['body'] = [DeprecationHelper::backwardsCompatibleCall(
+    currentVersion: \Drupal::VERSION,
+    deprecatedVersion: '10.3',
+    currentCallable: fn() => $renderer->renderInIsolation($body),
+    deprecatedCallable: fn() => $renderer->renderPlain($body),
+  )];
+}
+
+/**
+ * Converts the line breaks in a plain-text message body to HTML.
+ *
+ * The account emails configured at /admin/config/people/accounts are entered
+ * in a plain textarea, so their line breaks collapse once the body is placed
+ * in an HTML template. This restores paragraphs and line breaks. A body that
+ * already contains HTML markup is returned unchanged.
+ *
+ * @param string $content
+ *   The message body. Any HTML entities are expected to be decoded already.
+ *
+ * @return string
+ *   The body, with plain-text line breaks converted to HTML when applicable.
+ */
+function _mail_theme_text_to_html($content) {
+  // Leave bodies that already contain HTML markup untouched.
+  if ($content !== strip_tags($content)) {
+    return $content;
+  }
+  // Normalise line endings, then escape the text so it is safe inside the
+  // HTML template.
+  $content = preg_replace('/\r\n?/', "\n", $content);
+  $content = htmlspecialchars($content, ENT_QUOTES, 'UTF-8');
+  // Prefer core's line-break filter: it produces <p> paragraphs and <br>
+  // tags. Fall back to a simple newline conversion if Filter is unavailable.
+  if (function_exists('_filter_autop')) {
+    return _filter_autop($content);
+  }
+  return nl2br($content);
 }

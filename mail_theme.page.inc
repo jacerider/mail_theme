@@ -7,6 +7,9 @@
  * Theme callback for mail theme.
  */
 
+use Drupal\Component\Render\MarkupInterface;
+use Drupal\Component\Utility\DeprecationHelper;
+use Drupal\Core\Render\Markup;
 use Drupal\Core\Url;
 
 /**
@@ -26,12 +29,24 @@ function template_preprocess_mail_theme_wrapper(array &$variables) {
   $variables['site_name'] = $site_config->get('name');
 
   if (!empty($variables['show_logo'])) {
-    // If we are using .png, change to .svg.
-    $logo = str_replace('.png', '-email.png', theme_get_setting('logo.url', $config->get('default')));
+    // Read the active theme's logo path. theme_get_setting() was deprecated in
+    // Drupal 11.3 in favour of the ThemeSettingsProvider service, which does
+    // not exist on Drupal 10.3 - 11.2, so dispatch by core version.
+    $default_theme = $config->get('default');
+    $logo_setting = DeprecationHelper::backwardsCompatibleCall(
+      currentVersion: \Drupal::VERSION,
+      deprecatedVersion: '11.3.0',
+      currentCallable: fn() => \Drupal::service('Drupal\Core\Extension\ThemeSettingsProvider')->getSetting('logo.url', $default_theme),
+      deprecatedCallable: fn() => theme_get_setting('logo.url', $default_theme),
+    );
+    // Swap the standard logo for its email-specific variant (logo-email.png).
+    $logo = str_replace('.png', '-email.png', $logo_setting);
     $logo = str_replace('.svg', '-email.png', $logo);
     $logo_path = ltrim($logo, '/');
     if (file_exists($logo_path)) {
-      $url = Url::fromUserInput($logo);
+      // Cache-bust the logo with its file modification time so an updated
+      // logo is not served from a stale email-client or proxy cache.
+      $url = Url::fromUserInput($logo, ['query' => ['v' => filemtime($logo_path)]]);
       [$width, $height] = getimagesize($logo_path);
       $variables['logo_url'] = $url->setAbsolute()->toString();
       $variables['logo_width'] = $width;
@@ -73,5 +88,69 @@ function template_preprocess_mail_theme_wrapper(array &$variables) {
     $variables['content_color'] = $colors['base']['hex'] ?? $variables['text_color'];
     $variables['primary_bg'] = $colors['primary']['hex'] ?? $variables['primary_bg'];
     $variables['secondary_bg'] = $colors['secondary']['hex'] ?? $variables['secondary_bg'];
+  }
+
+  // Allow the message body to reference the wrapper's color variables with a
+  // {{ variable }} placeholder, e.g. {{ primary_bg }}.
+  _mail_theme_replace_template_vars($variables);
+}
+
+/**
+ * Replaces {{ variable }} placeholders in the email body with color values.
+ *
+ * This lets the message body - including the email templates entered at
+ * /admin/config/people/accounts - reference the wrapper's color variables,
+ * for example {{ primary_bg }}.
+ *
+ * For security, only an explicit allow-list of color variables is exposed and
+ * the body is treated as a plain string: it is NEVER compiled or evaluated as
+ * a Twig template, so admin-entered text cannot execute code. Unknown
+ * placeholders are left untouched.
+ *
+ * @param array $variables
+ *   The mail_theme_wrapper template variables, passed by reference.
+ */
+function _mail_theme_replace_template_vars(array &$variables) {
+  if (empty($variables['body'])) {
+    return;
+  }
+
+  // Resolve the body to a string. It may be a string/Markup object, or a
+  // #markup render array.
+  if (is_string($variables['body']) || $variables['body'] instanceof MarkupInterface) {
+    $body = (string) $variables['body'];
+    $is_render_array = FALSE;
+  }
+  elseif (is_array($variables['body']) && isset($variables['body']['#markup'])) {
+    $body = (string) $variables['body']['#markup'];
+    $is_render_array = TRUE;
+  }
+  else {
+    return;
+  }
+
+  // Build the allow-list of placeholders from the wrapper's color variables.
+  $tokens = [];
+  foreach ([
+    'body_bg', 'content_bg', 'content_color',
+    'header_bg', 'header_color',
+    'primary_bg', 'primary_color',
+    'secondary_bg', 'secondary_color',
+  ] as $name) {
+    if (isset($variables[$name]) && is_scalar($variables[$name])) {
+      $tokens[$name] = (string) $variables[$name];
+    }
+  }
+
+  // Substitute each {{ variable }} placeholder. Unknown names are left as-is.
+  $body = preg_replace_callback('/\{\{\s*(\w+)\s*\}\}/', static function (array $match) use ($tokens) {
+    return $tokens[$match[1]] ?? $match[0];
+  }, $body);
+
+  if ($is_render_array) {
+    $variables['body']['#markup'] = Markup::create($body);
+  }
+  else {
+    $variables['body'] = Markup::create($body);
   }
 }
